@@ -3,17 +3,17 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 
-dotenv.config(); // ✅ Load env vars for Cloudinary & MongoDB
+dotenv.config(); // ✅ Load env vars (Cloudinary, MongoDB, etc.)
 
 const app = express();
 
-// ✅ Allow only specific origins (Netlify & localhost)
+// ✅ CORS config: allow Netlify + local dev
 const allowedOrigins = [
     'https://melodious-hotteok-6bc1a4.netlify.app',
-    'http://localhost:3000' // for development
+    'http://localhost:3000'
 ];
 
-app.use(cors({
+const corsOptions = {
     origin: function (origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
@@ -22,24 +22,34 @@ app.use(cors({
         }
     },
     credentials: true,
-}));
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200
+};
 
+// ✅ Use CORS middleware
+app.use(cors(corsOptions));
+
+// ✅ Preflight support for all routes
+app.options('*', cors(corsOptions));
+
+// ✅ Body parser middleware
 app.use(express.json());
 
-// ✅ Import routes
+// ✅ Static files (optional - only if storing locally)
+app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ✅ API route imports
 const movieRoutes = require('./routes/movieRoutes');
-const sliderRoutes = require('./routes/sliderRoutes'); // Optional
+const sliderRoutes = require('./routes/sliderRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminDeleteFile = require('./routes/adminDeleteFile');
 const posterUploadRoute = require('./routes/posterUpload');
 
-// ✅ Static file serving (if needed)
-app.use('/public', express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // only if storing locally
-
 // ✅ API routes
 app.use('/api/movies', movieRoutes);
-app.use('/api/slider', sliderRoutes);
+app.use('/api/slider', sliderRoutes); // optional
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminDeleteFile);
 app.use('/api/posters', posterUploadRoute);
