@@ -1,11 +1,13 @@
 const cloudinary = require('../config/cloudinary');
 
 const uploadToCloudinary = (fileBuffer, folder, resourceType = 'auto') => {
+    const folderValue = typeof folder === 'string' ? folder : (folder?.name || 'uploads');
+
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
             {
                 resource_type: resourceType,
-                folder,
+                folder: folderValue,
             },
             (error, result) => {
                 if (error) return reject(error);
@@ -15,5 +17,3 @@ const uploadToCloudinary = (fileBuffer, folder, resourceType = 'auto') => {
         stream.end(fileBuffer);
     });
 };
-
-module.exports = uploadToCloudinary;
