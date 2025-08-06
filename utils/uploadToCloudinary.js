@@ -17,3 +17,4 @@ const uploadToCloudinary = (fileBuffer, folder, resourceType = 'auto') => {
         stream.end(fileBuffer);
     });
 };
+module.exports = uploadToCloudinary;
