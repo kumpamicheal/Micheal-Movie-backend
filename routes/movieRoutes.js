@@ -6,48 +6,52 @@ const upload = require('../middlewares/uploadMiddleware');
 const adminAuth = require('../middlewares/authMiddleware');
 const validateObjectId = require('../middlewares/validateObjectId');
 
-
-
-// ✅ Safe fallback for unimplemented routes
+// Fallback for unimplemented controller methods
 const notImplemented = (req, res) => {
     res.status(501).json({ message: 'Not implemented' });
 };
 
-// ✅ GET all movies
-if (typeof movieController.getAllMovies === 'function') {
-    router.get('/', movieController.getAllMovies);
-}
+// GET all movies
+router.get(
+    '/',
+    typeof movieController.getAllMovies === 'function' ? movieController.getAllMovies : notImplemented
+);
 
-// ✅ SEARCH movies by title
-if (typeof movieController.searchMovies === 'function') {
-    router.get('/search', movieController.searchMovies);
-}
+// SEARCH movies by title
+router.get(
+    '/search',
+    typeof movieController.searchMovies === 'function' ? movieController.searchMovies : notImplemented
+);
 
-// ✅ GET movie by ID
-router.get('/:id', validateObjectId, movieController.getMovieById || notImplemented);
+// GET movie by ID
+router.get(
+    '/:id',
+    validateObjectId,
+    typeof movieController.getMovieById === 'function' ? movieController.getMovieById : notImplemented
+);
 
-// ✅ POST create movie — only accepts video
+// POST create movie — only accepts video; admin only
 router.post(
     '/',
     adminAuth,
     upload.single('video'),
-    movieController.createMovie
+    typeof movieController.createMovie === 'function' ? movieController.createMovie : notImplemented
 );
 
-// ✅ PUT update movie (fallback to notImplemented if not defined)
+// PUT update movie — admin only
 router.put(
     '/:id',
     adminAuth,
     validateObjectId,
-    movieController.updateMovie || notImplemented
+    typeof movieController.updateMovie === 'function' ? movieController.updateMovie : notImplemented
 );
 
-// ✅ DELETE movie (fallback to notImplemented if not defined)
+// DELETE movie — admin only
 router.delete(
     '/:id',
     adminAuth,
     validateObjectId,
-    movieController.deleteMovie || notImplemented
+    typeof movieController.deleteMovie === 'function' ? movieController.deleteMovie : notImplemented
 );
 
 module.exports = router;
