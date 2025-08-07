@@ -43,7 +43,10 @@ app.options(new RegExp('.*'), cors(corsOptions));
 
 
 // ✅ Parse incoming JSON
-app.use(express.json());
+// ✅ Increase request body size limit (important for large uploads like videos)
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ limit: '500mb', extended: true }));
+
 
 // ✅ Serve static files (if using local file storage)
 app.use('/public', express.static(path.join(__dirname, 'public')));
