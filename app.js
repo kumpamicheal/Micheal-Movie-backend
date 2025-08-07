@@ -3,22 +3,29 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 
-dotenv.config(); // ✅ Load env vars (Cloudinary, MongoDB, etc.)
+// Load environment variables
+dotenv.config();
 
 const app = express();
 
-// ✅ CORS config: allow Netlify + local dev
+// ✅ Allowed origins (Netlify + local dev)
 const allowedOrigins = [
     'https://melodious-hotteok-6bc1a4.netlify.app',
     'http://localhost:3000'
 ];
 
+console.log('🧪 Allowed Origins:', allowedOrigins);
+
+// ✅ CORS configuration with safe logging
 const corsOptions = {
     origin: function (origin, callback) {
+        console.log('🌐 Incoming Origin:', origin);
+
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('❌ Not allowed by CORS'));
+            console.warn('⚠️ Blocked by CORS, but not crashing:', origin);
+            callback(null, false); // ✅ Don't crash, just reject the request
         }
     },
     credentials: true,
@@ -27,36 +34,51 @@ const corsOptions = {
     optionsSuccessStatus: 200
 };
 
-// ✅ Use CORS middleware
+
+// ✅ Apply CORS middleware
 app.use(cors(corsOptions));
 
-// ✅ Preflight support for all routes
-app.options('*', cors(corsOptions));
+// ✅ Enable CORS pre-flight for all routes
+app.options(new RegExp('.*'), cors(corsOptions));
 
-// ✅ Body parser middleware
+
+// ✅ Parse incoming JSON
 app.use(express.json());
 
-// ✅ Static files (optional - only if storing locally)
+// ✅ Serve static files (if using local file storage)
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ API route imports
+// ✅ Import route files
 const movieRoutes = require('./routes/movieRoutes');
-const sliderRoutes = require('./routes/sliderRoutes');
+
 const authRoutes = require('./routes/authRoutes');
 const adminDeleteFile = require('./routes/adminDeleteFile');
 const posterUploadRoute = require('./routes/posterUpload');
 
-// ✅ API routes
+// ✅ Register API routes
 app.use('/api/movies', movieRoutes);
-app.use('/api/slider', sliderRoutes); // optional
+
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminDeleteFile);
 app.use('/api/posters', posterUploadRoute);
+
+const listEndpoints = require('express-list-endpoints');
+
+try {
+    const endpoints = listEndpoints(app);
+    console.log('✅ Registered Endpoints:\n', JSON.stringify(endpoints, null, 2));
+} catch (err) {
+    console.error('❌ Error listing endpoints:', err.message);
+    console.error(err.stack);
+}
+
+
 
 // ✅ Root route
 app.get('/', (req, res) => {
     res.send('🎬 Movie API is running. Use /api/movies or /api/slider-images.');
 });
 
+// ✅ Export app
 module.exports = app;

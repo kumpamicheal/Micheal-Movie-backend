@@ -2,11 +2,12 @@ const express = require('express');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
-const Movie = require('../models/Movie'); // Adjust path as needed
+const mongoose = require('mongoose');
+const Movie = require('../models/Movie');
 
 const router = express.Router();
 
-// Configure multer for memory storage (buffer)
+// Configure multer for memory storage
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Configure Cloudinary
@@ -16,20 +17,22 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// Helper: Validate MongoDB ObjectId
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
 // POST /api/posters/upload
 router.post('/upload', upload.single('poster'), async (req, res) => {
-    const movieId = req.body.movieId;
+    const { movieId } = req.body;
 
     if (!req.file) {
         return res.status(400).json({ error: 'No poster file uploaded' });
     }
 
-    if (!movieId) {
-        return res.status(400).json({ error: 'No movieId provided' });
+    if (!movieId || !isValidObjectId(movieId)) {
+        return res.status(400).json({ error: 'Invalid or missing movieId' });
     }
 
     try {
-        // Upload to Cloudinary
         const stream = cloudinary.uploader.upload_stream(
             { folder: 'posters' },
             async (error, result) => {
@@ -38,10 +41,8 @@ router.post('/upload', upload.single('poster'), async (req, res) => {
                     return res.status(500).json({ error: 'Poster upload failed' });
                 }
 
-                const posterUrl = result.secure_url;
-                const posterPublicId = result.public_id;  // Save this for deletion!
+                const { secure_url: posterUrl, public_id: posterPublicId } = result;
 
-                // Update the movie with the new poster URL and public ID
                 const updatedMovie = await Movie.findByIdAndUpdate(
                     movieId,
                     { posterUrl, posterPublicId },
@@ -52,7 +53,7 @@ router.post('/upload', upload.single('poster'), async (req, res) => {
                     return res.status(404).json({ error: 'Movie not found' });
                 }
 
-                return res.status(200).json({
+                res.status(200).json({
                     message: 'Poster uploaded and movie updated successfully',
                     posterUrl,
                     movie: updatedMovie
@@ -68,19 +69,16 @@ router.post('/upload', upload.single('poster'), async (req, res) => {
 });
 
 // DELETE /api/posters/delete
-// Expects JSON: { movieId: '...', posterPublicId: '...' }
 router.delete('/delete', async (req, res) => {
     const { movieId, posterPublicId } = req.body;
 
-    if (!movieId || !posterPublicId) {
-        return res.status(400).json({ error: 'Missing movieId or posterPublicId' });
+    if (!movieId || !posterPublicId || !isValidObjectId(movieId)) {
+        return res.status(400).json({ error: 'Missing or invalid movieId or posterPublicId' });
     }
 
     try {
-        // Delete poster from Cloudinary
         await cloudinary.uploader.destroy(posterPublicId);
 
-        // Remove posterUrl and posterPublicId from movie document
         const updatedMovie = await Movie.findByIdAndUpdate(
             movieId,
             { $unset: { posterUrl: "", posterPublicId: "" } },
@@ -91,7 +89,7 @@ router.delete('/delete', async (req, res) => {
             return res.status(404).json({ error: 'Movie not found' });
         }
 
-        return res.status(200).json({
+        res.status(200).json({
             message: 'Poster deleted and movie updated successfully',
             movie: updatedMovie
         });
@@ -101,9 +99,13 @@ router.delete('/delete', async (req, res) => {
     }
 });
 
-// ✅ NEW: GET /api/posters/movie/:movieId
+// GET /api/posters/movie/:movieId
 router.get('/movie/:movieId', async (req, res) => {
     const { movieId } = req.params;
+
+    if (!isValidObjectId(movieId)) {
+        return res.status(400).json({ error: 'Invalid movieId' });
+    }
 
     try {
         const movie = await Movie.findById(movieId);
@@ -116,7 +118,7 @@ router.get('/movie/:movieId', async (req, res) => {
             return res.status(404).json({ error: 'Poster not found for this movie' });
         }
 
-        return res.status(200).json({
+        res.status(200).json({
             _id: movie._id,
             posterUrl: movie.posterUrl,
             posterPublicId: movie.posterPublicId
