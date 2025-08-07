@@ -11,31 +11,24 @@ const notImplemented = (req, res) => {
     res.status(501).json({ message: 'Not implemented' });
 };
 
+// ✅ Safe handler wrapper
+const safe = (fn) => (typeof fn === 'function' ? fn : notImplemented);
+
 // GET all movies
-router.get(
-    '/',
-    typeof movieController.getAllMovies === 'function' ? movieController.getAllMovies : notImplemented
-);
+router.get('/', safe(movieController.getAllMovies));
 
 // SEARCH movies by title
-router.get(
-    '/search',
-    typeof movieController.searchMovies === 'function' ? movieController.searchMovies : notImplemented
-);
+router.get('/search', safe(movieController.searchMovies));
 
 // GET movie by ID
-router.get(
-    '/:id',
-    validateObjectId,
-    typeof movieController.getMovieById === 'function' ? movieController.getMovieById : notImplemented
-);
+router.get('/:id', validateObjectId, safe(movieController.getMovieById));
 
 // POST create movie — only accepts video; admin only
 router.post(
     '/',
     adminAuth,
     upload.single('video'),
-    typeof movieController.createMovie === 'function' ? movieController.createMovie : notImplemented
+    safe(movieController.createMovie)
 );
 
 // PUT update movie — admin only
@@ -43,7 +36,7 @@ router.put(
     '/:id',
     adminAuth,
     validateObjectId,
-    typeof movieController.updateMovie === 'function' ? movieController.updateMovie : notImplemented
+    safe(movieController.updateMovie)
 );
 
 // DELETE movie — admin only
@@ -51,7 +44,7 @@ router.delete(
     '/:id',
     adminAuth,
     validateObjectId,
-    typeof movieController.deleteMovie === 'function' ? movieController.deleteMovie : notImplemented
+    safe(movieController.deleteMovie)
 );
 
 module.exports = router;
