@@ -11,13 +11,22 @@ const uploadToCloudinary = (fileBuffer, folder, resourceType = 'auto') => {
             timestamp,
         };
 
-        // ✅ Step 1: Create the signature string exactly as Cloudinary expects
+        // ✅ DEBUG LOGS — temporary, remove after testing
+        console.log('🔐 Signing upload request...');
+        console.log('📁 folder:', folderValue);
+        console.log('🕒 timestamp:', timestamp);
+        console.log('📦 Params to sign:', paramsToSign);
+        console.log('🔑 API_SECRET (first 5 chars):', process.env.CLOUDINARY_API_SECRET?.slice(0, 5) + '***');
+
+        // ✅ Generate signature
         const signature = cloudinary.utils.api_sign_request(
             paramsToSign,
             process.env.CLOUDINARY_API_SECRET
         );
 
-        // ✅ Step 2: Begin the upload
+        console.log('🧾 Generated Signature:', signature);
+
+        // ✅ Start upload
         const stream = cloudinary.uploader.upload_stream(
             {
                 resource_type: resourceType,
@@ -37,7 +46,7 @@ const uploadToCloudinary = (fileBuffer, folder, resourceType = 'auto') => {
             }
         );
 
-        // ✅ Step 3: Pipe the file buffer into the upload stream
+        // ✅ Pipe file buffer into upload stream
         stream.end(fileBuffer);
     });
 };
