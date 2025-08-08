@@ -5,6 +5,9 @@ const movieController = require('../controllers/movieController');
 const upload = require('../middlewares/uploadMiddleware');
 const adminAuth = require('../middlewares/authMiddleware');
 const validateObjectId = require('../middlewares/validateObjectId');
+const crypto = require('crypto');
+const dotenv = require('dotenv');
+dotenv.config();
 
 // Fallback for unimplemented controller methods
 const notImplemented = (req, res) => {
@@ -14,13 +17,25 @@ const notImplemented = (req, res) => {
 // ✅ Safe handler wrapper
 const safe = (fn) => (typeof fn === 'function' ? fn : notImplemented);
 
+// ✅ Generate Cloudinary signature — moved above `/:id`
+router.get('/sign', (req, res) => {
+    const timestamp = Math.floor(Date.now() / 1000); // ✅ seconds, not ms
+    const paramsToSign = `folder=movies&timestamp=${timestamp}`;
+    const signature = crypto
+        .createHash('sha1')
+        .update(paramsToSign + process.env.CLOUDINARY_API_SECRET)
+        .digest('hex');
+
+    res.json({ timestamp, signature });
+});
+
 // GET all movies
 router.get('/', safe(movieController.getAllMovies));
 
 // SEARCH movies by title
 router.get('/search', safe(movieController.searchMovies));
 
-// GET movie by ID
+// GET movie by ID — must come **after** more specific routes
 router.get('/:id', validateObjectId, safe(movieController.getMovieById));
 
 // POST create movie — only accepts video; admin only
@@ -46,22 +61,5 @@ router.delete(
     validateObjectId,
     safe(movieController.deleteMovie)
 );
-
-const crypto = require('crypto');
-const dotenv = require('dotenv');
-dotenv.config();
-
-// ✅ Generate Cloudinary signature
-router.get('/sign', (req, res) => {
-    const timestamp = Math.floor(Date.now() / 1000); // ✅ seconds, not ms
-    const paramsToSign = `folder=movies&timestamp=${timestamp}`;
-    const signature = crypto
-        .createHash('sha1')
-        .update(paramsToSign + process.env.CLOUDINARY_API_SECRET)
-        .digest('hex');
-
-    res.json({ timestamp, signature });
-});
-
 
 module.exports = router;
