@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-
 const movieController = require('../controllers/movieController');
 const upload = require('../middlewares/uploadMiddleware');
 const adminAuth = require('../middlewares/authMiddleware');
@@ -9,36 +8,34 @@ const crypto = require('crypto');
 const dotenv = require('dotenv');
 dotenv.config();
 
-// Fallback for unimplemented controller methods
 const notImplemented = (req, res) => {
     res.status(501).json({ message: 'Not implemented' });
 };
 
-// ✅ Safe handler wrapper
 const safe = (fn) => (typeof fn === 'function' ? fn : notImplemented);
 
-// ✅ Generate Cloudinary signature — moved above `/:id`
+// ✅ Cloudinary Signature Endpoint — with Debug Logs
 router.get('/sign', (req, res) => {
-    const timestamp = Math.floor(Date.now() / 1000); // ✅ seconds, not ms
+    const timestamp = Math.floor(Date.now() / 1000);
     const paramsToSign = `folder=movies&timestamp=${timestamp}`;
-    const signature = crypto
-        .createHash('sha1')
-        .update(paramsToSign + process.env.CLOUDINARY_API_SECRET)
-        .digest('hex');
+    const fullString = paramsToSign + process.env.CLOUDINARY_API_SECRET;
+    const signature = crypto.createHash('sha1').update(fullString).digest('hex');
+
+    // 🔍 Debug Logs
+    console.log('🔐 Signature requested');
+    console.log('📦 Params to sign:', paramsToSign);
+    console.log('🔑 Full string to hash:', fullString);
+    console.log('✅ Generated signature:', signature);
+    console.log('🕒 Timestamp:', timestamp);
 
     res.json({ timestamp, signature });
 });
 
-// GET all movies
+// CRUD Routes
 router.get('/', safe(movieController.getAllMovies));
-
-// SEARCH movies by title
 router.get('/search', safe(movieController.searchMovies));
-
-// GET movie by ID — must come **after** more specific routes
 router.get('/:id', validateObjectId, safe(movieController.getMovieById));
 
-// POST create movie — only accepts video; admin only
 router.post(
     '/',
     adminAuth,
@@ -46,7 +43,6 @@ router.post(
     safe(movieController.createMovie)
 );
 
-// PUT update movie — admin only
 router.put(
     '/:id',
     adminAuth,
@@ -54,7 +50,6 @@ router.put(
     safe(movieController.updateMovie)
 );
 
-// DELETE movie — admin only
 router.delete(
     '/:id',
     adminAuth,
