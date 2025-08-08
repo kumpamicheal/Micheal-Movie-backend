@@ -41,32 +41,47 @@ exports.searchMovies = async (req, res) => {
     }
 };
 
-// ✅ Create movie (with fixed return for _id)
 exports.createMovie = async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ message: 'No video file uploaded' });
+        // ✅ 1. Validate video file exists
+        if (!req.file) {
+            return res.status(400).json({ message: 'No video file uploaded' });
+        }
 
         const { title, genre } = req.body;
-        if (!title || !genre) return res.status(400).json({ message: 'Title and genre are required' });
 
+        // ✅ 2. Validate required fields
+        if (!title || !genre) {
+            return res.status(400).json({ message: 'Title and genre are required' });
+        }
+
+        // ✅ 3. Upload video to Cloudinary (with signed upload)
         const uploadResult = await uploadToCloudinary(req.file.buffer, 'movies', 'video');
 
+        // ✅ 4. Create a new Movie document
         const movie = new Movie({
             title,
             genre,
             videoUrl: uploadResult.secure_url,
             videoPublicId: uploadResult.public_id,
-            status: 'approved',
+            status: 'approved', // or 'pending' if you plan moderation
         });
 
-        const savedMovie = await movie.save(); // ✅ Ensure _id is captured
+        // ✅ 5. Save to DB and return saved movie
+        const savedMovie = await movie.save();
+        res.status(201).json(savedMovie);
 
-        res.status(201).json(savedMovie); // ✅ Return saved movie with _id
     } catch (err) {
-        console.error('Error in createMovie:', err);
-        res.status(500).json({ message: 'Server error', error: err.message });
+        console.error('❌ Error in createMovie:', err);
+
+        // ✅ Clean error response
+        res.status(500).json({
+            message: 'Server error during movie upload',
+            error: err.message,
+        });
     }
 };
+
 
 // ✅ Update movie
 exports.updateMovie = async (req, res) => {
