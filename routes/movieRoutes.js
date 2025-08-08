@@ -47,4 +47,21 @@ router.delete(
     safe(movieController.deleteMovie)
 );
 
+const crypto = require('crypto');
+const dotenv = require('dotenv');
+dotenv.config();
+
+// ✅ Generate Cloudinary signature
+router.get('/sign', (req, res) => {
+    const timestamp = Math.floor(Date.now() / 1000); // ✅ seconds, not ms
+    const paramsToSign = `folder=movies&timestamp=${timestamp}`;
+    const signature = crypto
+        .createHash('sha1')
+        .update(paramsToSign + process.env.CLOUDINARY_API_SECRET)
+        .digest('hex');
+
+    res.json({ timestamp, signature });
+});
+
+
 module.exports = router;
