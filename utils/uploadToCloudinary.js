@@ -1,22 +1,30 @@
-// src/utils/uploadToCloudinary.js or ../utils/uploadToCloudinary.js
 const cloudinary = require('../config/cloudinary');
-
-// ✅ Ensure credentials are loaded (can be removed later if you prefer)
-console.log('🔐 Cloudinary config:', {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY ? '✅ present' : '❌ missing',
-    api_secret: process.env.CLOUDINARY_API_SECRET ? '✅ present' : '❌ missing',
-});
+const crypto = require('crypto');
 
 const uploadToCloudinary = (fileBuffer, folder, resourceType = 'auto') => {
-    const folderValue =
-        typeof folder === 'string' ? folder : folder?.name || 'uploads';
-
     return new Promise((resolve, reject) => {
+        const timestamp = Math.floor(Date.now() / 1000);
+
+        const folderValue = typeof folder === 'string' ? folder : folder?.name || 'uploads';
+
+        const paramsToSign = {
+            folder: folderValue,
+            timestamp,
+        };
+
+        // Generate the signature
+        const signature = cloudinary.utils.api_sign_request(
+            paramsToSign,
+            process.env.CLOUDINARY_API_SECRET
+        );
+
         const stream = cloudinary.uploader.upload_stream(
             {
                 resource_type: resourceType,
                 folder: folderValue,
+                timestamp,
+                signature,
+                api_key: process.env.CLOUDINARY_API_KEY, // Required
             },
             (error, result) => {
                 if (error) {
@@ -29,7 +37,7 @@ const uploadToCloudinary = (fileBuffer, folder, resourceType = 'auto') => {
             }
         );
 
-        // ✅ End stream with buffer
+        // Stream the video buffer
         stream.end(fileBuffer);
     });
 };
