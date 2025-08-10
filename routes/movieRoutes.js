@@ -16,12 +16,19 @@ router.get('/', safe(movieController.getAllMovies));
 router.get('/search', safe(movieController.searchMovies));
 router.get('/:id', validateObjectId, safe(movieController.getMovieById));
 
+//router.post(
+   // '/',
+   // adminAuth,
+  //  upload.single('video'),
+  //  safe(movieController.createMovie)
+//);
+
 router.post(
     '/',
     adminAuth,
-    upload.single('video'),
     safe(movieController.createMovie)
 );
+
 
 router.put(
     '/:id',

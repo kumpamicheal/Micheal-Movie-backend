@@ -1,5 +1,5 @@
+// controllers/movieController.js
 const Movie = require('../models/Movie');
-const uploadUnsigned = require('../utils/uploadUnsigned'); // ⬅️ changed import
 
 // ✅ Get all movies
 exports.getAllMovies = async (req, res) => {
@@ -16,7 +16,9 @@ exports.getAllMovies = async (req, res) => {
 exports.getMovieById = async (req, res) => {
     try {
         const movie = await Movie.findById(req.params.id);
-        if (!movie) return res.status(404).json({ message: 'Movie not found' });
+        if (!movie) {
+            return res.status(404).json({ message: 'Movie not found' });
+        }
         res.status(200).json(movie);
     } catch (err) {
         console.error('Error in getMovieById:', err);
@@ -28,7 +30,9 @@ exports.getMovieById = async (req, res) => {
 exports.searchMovies = async (req, res) => {
     try {
         const { title } = req.query;
-        if (!title) return res.status(400).json({ message: 'Title query is required' });
+        if (!title) {
+            return res.status(400).json({ message: 'Title query is required' });
+        }
 
         const movies = await Movie.find({
             title: { $regex: title, $options: 'i' }
@@ -41,41 +45,33 @@ exports.searchMovies = async (req, res) => {
     }
 };
 
-// ✅ Create movie
+// ✅ Create movie (unsigned Cloudinary upload flow)
 exports.createMovie = async (req, res) => {
     try {
-        // 1. Validate video file exists
-        if (!req.file) {
-            return res.status(400).json({ message: 'No video file uploaded' });
+        const { title, genre, videoUrl, publicId, posterUrl } = req.body;
+
+        // 1. Validate required fields
+        if (!title || !genre || !videoUrl) {
+            return res.status(400).json({ message: 'Title, genre, and videoUrl are required' });
         }
 
-        const { title, genre } = req.body;
-
-        // 2. Validate required fields
-        if (!title || !genre) {
-            return res.status(400).json({ message: 'Title and genre are required' });
-        }
-
-        // 3. Upload video to Cloudinary (unsigned)
-        const uploadResult = await uploadUnsigned(req.file.buffer);
-
-        // 4. Create a new Movie document
+        // 2. Create and save the movie
         const movie = new Movie({
             title,
             genre,
-            videoUrl: uploadResult.secure_url,
-            videoPublicId: uploadResult.public_id,
-            status: 'approved', // or 'pending' if you plan moderation
+            videoUrl,                    // Cloudinary video URL from frontend
+            videoPublicId: publicId || null, // Optional Cloudinary public_id
+            posterUrl: posterUrl || null, // Optional poster URL
+            status: 'approved',           // Or 'pending' if moderation is planned
         });
 
-        // 5. Save to DB and return saved movie
         const savedMovie = await movie.save();
         res.status(201).json(savedMovie);
 
     } catch (err) {
         console.error('❌ Error in createMovie:', err);
         res.status(500).json({
-            message: 'Server error during movie upload',
+            message: 'Server error during movie creation',
             error: err.message,
         });
     }
@@ -84,8 +80,14 @@ exports.createMovie = async (req, res) => {
 // ✅ Update movie
 exports.updateMovie = async (req, res) => {
     try {
-        const updatedMovie = await Movie.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedMovie) return res.status(404).json({ message: 'Movie not found' });
+        const updatedMovie = await Movie.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        if (!updatedMovie) {
+            return res.status(404).json({ message: 'Movie not found' });
+        }
         res.status(200).json(updatedMovie);
     } catch (err) {
         console.error('Error in updateMovie:', err);
@@ -97,7 +99,9 @@ exports.updateMovie = async (req, res) => {
 exports.deleteMovie = async (req, res) => {
     try {
         const deletedMovie = await Movie.findByIdAndDelete(req.params.id);
-        if (!deletedMovie) return res.status(404).json({ message: 'Movie not found' });
+        if (!deletedMovie) {
+            return res.status(404).json({ message: 'Movie not found' });
+        }
         res.status(200).json({ message: 'Movie deleted successfully' });
     } catch (err) {
         console.error('Error in deleteMovie:', err);
