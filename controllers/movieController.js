@@ -27,30 +27,30 @@ exports.getMovieById = async (req, res) => {
 };
 
 // ✅ Get movies with pagination (for Library.js)
-//exports.getPaginatedMovies = async (req, res) => {
-   // try {
-        //const page = parseInt(req.query.page) || 1;
-       // const limit = parseInt(req.query.limit) || 8;
-        //const skip = (page - 1) * limit;
+exports.getPaginatedMovies = async (req, res) => {
+  try {
+      const page = parseInt(req.query.page) || 1;
+     const limit = parseInt(req.query.limit) || 8;
+     const skip = (page - 1) * limit;
 
-        //const movies = await Movie.find()
-          //  .sort({ createdAt: -1 })
-           // .skip(skip)
-          //  .limit(limit);
+      const movies = await Movie.find()
+           .sort({ createdAt: -1 })
+           .skip(skip)
+           .limit(limit);
 
-       // const totalMovies = await Movie.countDocuments();
-       // const totalPages = Math.ceil(totalMovies / limit);
+        const totalMovies = await Movie.countDocuments();
+       const totalPages = Math.ceil(totalMovies / limit);
 
-       // res.status(200).json({
-          //  movies,
-          //  page,
-          //  totalPages
-       // });
-   // } catch (err) {
-      //  console.error('Error in getPaginatedMovies:', err);
-      //  res.status(500).json({ message: 'Server error' });
-   // }
-//};
+       res.status(200).json({
+           movies,
+           page,
+            totalPages
+        });
+    } catch (err) {
+       console.error('Error in getPaginatedMovies:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 
 
 // ✅ Search movies by title
