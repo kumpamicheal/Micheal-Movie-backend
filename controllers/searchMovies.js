@@ -1,54 +1,40 @@
 exports.searchMovies = async (req, res) => {
     try {
-        const { query, page = 1, limit = 10, sort = 'date_desc' } = req.query;
+        // Support both "query" and "title" params
+        const searchTerm = req.query.query || req.query.title;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const sort = req.query.sort || 'date_desc';
 
-        if (!query) {
-            return res.status(400).json({ message: 'Query parameter is required' });
+        if (!searchTerm) {
+            return res.status(400).json({ message: 'Search term is required' });
         }
 
-        const regex = new RegExp(query, 'i'); // case-insensitive partial match
+        const regex = new RegExp(searchTerm, 'i');
+        const skip = (page - 1) * limit;
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-
-        // Determine sorting field and order
         let sortOption = {};
         switch (sort) {
-            case 'title_asc':
-                sortOption = { title: 1 }; // A → Z
-                break;
-            case 'title_desc':
-                sortOption = { title: -1 }; // Z → A
-                break;
-            case 'date_asc':
-                sortOption = { createdAt: 1 }; // Oldest first
-                break;
+            case 'title_asc': sortOption = { title: 1 }; break;
+            case 'title_desc': sortOption = { title: -1 }; break;
+            case 'date_asc': sortOption = { createdAt: 1 }; break;
             case 'date_desc':
-            default:
-                sortOption = { createdAt: -1 }; // Newest first
-                break;
+            default: sortOption = { createdAt: -1 }; break;
         }
 
-        const movies = await Movie.find({
-            $or: [
-                { title: regex },
-                { genre: regex }
-            ]
-        })
+        const filter = { $or: [{ title: regex }, { genre: regex }] };
+
+        const movies = await Movie.find(filter)
             .sort(sortOption)
             .skip(skip)
-            .limit(parseInt(limit));
+            .limit(limit);
 
-        const totalCount = await Movie.countDocuments({
-            $or: [
-                { title: regex },
-                { genre: regex }
-            ]
-        });
+        const totalCount = await Movie.countDocuments(filter);
 
         res.status(200).json({
             movies,
             totalCount,
-            currentPage: parseInt(page),
+            currentPage: page,
             totalPages: Math.ceil(totalCount / limit)
         });
 
