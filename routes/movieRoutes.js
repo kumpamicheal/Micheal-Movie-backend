@@ -14,7 +14,12 @@ const safe = (fn) => (typeof fn === 'function' ? fn : notImplemented);
 // ✅ CRUD Routes Only (No /sign route)
 router.get('/', safe(movieController.getAllMovies));
 router.get('/search', safe(movieController.searchMovies));
+
+// ✅ New paginated route for Library.js
+router.get('/paginated', safe(movieController.getPaginatedMovies));
+
 router.get('/:id', validateObjectId, safe(movieController.getMovieById));
+
 
 //router.post(
    // '/',
