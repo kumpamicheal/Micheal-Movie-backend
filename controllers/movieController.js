@@ -54,15 +54,24 @@ exports.getPaginatedMovies = async (req, res) => {
 
 
 // ✅ Search movies by title
+
+// ✅ Search movies by title or genre (case-insensitive & ignores spaces)
 exports.searchMovies = async (req, res) => {
     try {
-        const { title } = req.query;
+        let { title } = req.query;
         if (!title) {
             return res.status(400).json({ message: 'Title query is required' });
         }
 
+        // Trim spaces and make search case-insensitive
+        const searchTerm = title.trim().replace(/\s+/g, ' '); // remove extra spaces
+        const regex = new RegExp(searchTerm, 'i'); // 'i' = ignore case
+
         const movies = await Movie.find({
-            title: { $regex: title, $options: 'i' }
+            $or: [
+                { title: regex },
+                { genre: regex }
+            ]
         });
 
         res.status(200).json(movies);
@@ -71,6 +80,7 @@ exports.searchMovies = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 // ✅ Create movie (unsigned Cloudinary upload flow)
 exports.createMovie = async (req, res) => {
