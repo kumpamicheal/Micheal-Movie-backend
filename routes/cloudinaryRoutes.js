@@ -10,15 +10,16 @@ cloudinary.config({
 });
 
 router.get('/sign', adminAuth, (req, res) => {
-    const { folder, resource_type } = req.query;
+    const { folder } = req.query;
 
-    if (!folder || !resource_type) {
-        return res.status(400).json({ message: 'Missing folder or resource_type' });
+    if (!folder) {
+        return res.status(400).json({ message: 'Missing folder' });
     }
 
     const timestamp = Math.round(Date.now() / 1000);
+    const resource_type = "video"; // ✅ always fixed here
 
-    // ✅ Only sign timestamp + folder
+    // ✅ Sign with timestamp, folder, and resource_type
     const signature = cloudinary.utils.api_sign_request(
         { timestamp, folder, resource_type },
         process.env.CLOUDINARY_API_SECRET
@@ -27,7 +28,7 @@ router.get('/sign', adminAuth, (req, res) => {
     res.json({
         timestamp,
         folder,
-        resource_type, // still send to frontend
+        resource_type,
         signature,
         api_key: process.env.CLOUDINARY_API_KEY,
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME
