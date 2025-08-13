@@ -17,18 +17,18 @@ router.get('/sign', adminAuth, (req, res) => {
     }
 
     const timestamp = Math.round(Date.now() / 1000);
-    const resource_type = "video"; // ✅ always fixed here
+    const resource_type = "video"; // fixed type
 
-    // ✅ Sign with timestamp, folder, and resource_type
+    // Sign ONLY the parameters that will be sent in formData
     const signature = cloudinary.utils.api_sign_request(
-        { timestamp, folder, resource_type },
+        { timestamp, folder },
         process.env.CLOUDINARY_API_SECRET
     );
 
     res.json({
         timestamp,
         folder,
-        resource_type,
+        resource_type, // for frontend URL use
         signature,
         api_key: process.env.CLOUDINARY_API_KEY,
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME
