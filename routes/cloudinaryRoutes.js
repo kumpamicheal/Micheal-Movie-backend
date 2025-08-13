@@ -20,7 +20,7 @@ router.get('/sign', adminAuth, (req, res) => {
 
     // ✅ Only sign timestamp + folder
     const signature = cloudinary.utils.api_sign_request(
-        { timestamp, folder },
+        { timestamp, folder, resource_type },
         process.env.CLOUDINARY_API_SECRET
     );
 
