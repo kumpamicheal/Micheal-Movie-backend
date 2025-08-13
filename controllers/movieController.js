@@ -1,5 +1,31 @@
+
 // controllers/movieController.js
+require('dotenv').config();
+const cloudinary = require('cloudinary').v2;
+const stream = require('stream');
 const Movie = require('../models/Movie');
+
+// ✅ Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// ✅ Helper for Cloudinary signed uploads
+const uploadToCloudinary = (fileBuffer, folder, resourceType) => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            { folder, resource_type: resourceType },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+        stream.Readable.from(fileBuffer).pipe(uploadStream);
+    });
+};
+
 
 // ✅ Get all movies
 exports.getAllMovies = async (req, res) => {
@@ -54,24 +80,15 @@ exports.getPaginatedMovies = async (req, res) => {
 
 
 // ✅ Search movies by title
-
-// ✅ Search movies by title or genre (case-insensitive & ignores spaces)
 exports.searchMovies = async (req, res) => {
     try {
-        let { title } = req.query;
+        const { title } = req.query;
         if (!title) {
             return res.status(400).json({ message: 'Title query is required' });
         }
 
-        // Trim spaces and make search case-insensitive
-        const searchTerm = title.trim().replace(/\s+/g, ' '); // remove extra spaces
-        const regex = new RegExp(searchTerm, 'i'); // 'i' = ignore case
-
         const movies = await Movie.find({
-            $or: [
-                { title: regex },
-                { genre: regex }
-            ]
+            title: { $regex: title, $options: 'i' }
         });
 
         res.status(200).json(movies);
@@ -81,25 +98,26 @@ exports.searchMovies = async (req, res) => {
     }
 };
 
-
-// ✅ Create movie (unsigned Cloudinary upload flow)
+// ✅ Create movie (signed Cloudinary upload flow)
+// ✅ Create movie (signed upload flow — no file upload here)
 exports.createMovie = async (req, res) => {
     try {
-        const { title, genre, videoUrl, publicId, posterUrl } = req.body;
+        const { title, genre, posterUrl, posterPublicId, videoUrl, videoPublicId } = req.body;
 
-        // 1. Validate required fields
+        // Validate fields
         if (!title || !genre || !videoUrl) {
-            return res.status(400).json({ message: 'Title, genre, and videoUrl are required' });
+            return res.status(400).json({ message: 'Title, genre, and video URL are required' });
         }
 
-        // 2. Create and save the movie
+        // Save to DB
         const movie = new Movie({
             title,
             genre,
-            videoUrl,                    // Cloudinary video URL from frontend
-            videoPublicId: publicId || null, // Optional Cloudinary public_id
-            posterUrl: posterUrl || null, // Optional poster URL
-            status: 'approved',           // Or 'pending' if moderation is planned
+            videoUrl,
+            videoPublicId,
+            posterUrl: posterUrl || null,
+            posterPublicId: posterPublicId || null,
+            status: 'approved',
         });
 
         const savedMovie = await movie.save();
@@ -113,6 +131,7 @@ exports.createMovie = async (req, res) => {
         });
     }
 };
+
 
 // ✅ Update movie
 exports.updateMovie = async (req, res) => {

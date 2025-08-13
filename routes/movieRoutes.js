@@ -23,15 +23,15 @@ router.get('/:id', validateObjectId, safe(movieController.getMovieById));
 
 //router.post(
    // '/',
-   // adminAuth,
-  //  upload.single('video'),
-  //  safe(movieController.createMovie)
+  // adminAuth,
+  // upload.single('video'),
+  // safe(movieController.createMovie)
 //);
 
 router.post(
     '/',
-    adminAuth,
-    safe(movieController.createMovie)
+   adminAuth,
+   safe(movieController.createMovie)
 );
 
 

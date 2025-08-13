@@ -52,8 +52,10 @@ const movieRoutes = require('./routes/movieRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminDeleteFile = require('./routes/adminDeleteFile');
 const posterUploadRoute = require('./routes/posterUpload');
+const cloudinaryRoutes = require('./routes/cloudinaryRoutes');
 
 // ✅ Register API routes
+app.use('/api/cloudinary', cloudinaryRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminDeleteFile);
