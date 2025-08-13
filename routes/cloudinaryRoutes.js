@@ -9,7 +9,6 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ✅ Route to generate signed upload params
 router.get('/sign', adminAuth, (req, res) => {
     const { folder, resource_type } = req.query;
 
@@ -18,15 +17,17 @@ router.get('/sign', adminAuth, (req, res) => {
     }
 
     const timestamp = Math.round(Date.now() / 1000);
+
+    // ✅ Only sign timestamp + folder
     const signature = cloudinary.utils.api_sign_request(
-        { timestamp, folder, resource_type },
+        { timestamp, folder },
         process.env.CLOUDINARY_API_SECRET
     );
 
     res.json({
         timestamp,
         folder,
-        resource_type,
+        resource_type, // still send to frontend
         signature,
         api_key: process.env.CLOUDINARY_API_KEY,
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME
