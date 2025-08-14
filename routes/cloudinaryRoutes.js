@@ -17,6 +17,13 @@ router.post('/upload-movie', adminAuth, upload.fields([
     { name: 'poster', maxCount: 1 },
     { name: 'video', maxCount: 1 }
 ]), async (req, res) => {
+
+    console.log("Cloudinary ENV:",
+        process.env.CLOUDINARY_API_KEY,
+        process.env.CLOUDINARY_API_SECRET,
+        process.env.CLOUDINARY_CLOUD_NAME
+    );
+
     try {
         const { title, genre } = req.body;
         if (!title || !genre) {

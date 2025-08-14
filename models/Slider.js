@@ -1,3 +1,4 @@
+/*
 const mongoose = require('mongoose');
 
 const sliderSchema = new mongoose.Schema({
@@ -19,4 +20,5 @@ const sliderSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Slider', sliderSchema);
+//module.exports = mongoose.model('Slider', sliderSchema);
+*/
