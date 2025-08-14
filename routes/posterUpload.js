@@ -1,3 +1,4 @@
+/*
 const express = require('express');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
@@ -129,4 +130,5 @@ router.get('/movie/:movieId', async (req, res) => {
     }
 });
 
-module.exports = router;
+//module.exports = router;
+*/

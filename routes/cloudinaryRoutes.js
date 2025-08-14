@@ -10,18 +10,17 @@ cloudinary.config({
 });
 
 router.get('/sign', adminAuth, (req, res) => {
-    const { folder } = req.query;
+    const { folder, resource_type = 'image' } = req.query; // default to image if not given
 
     if (!folder) {
         return res.status(400).json({ message: 'Missing folder' });
     }
 
     const timestamp = Math.round(Date.now() / 1000);
-    const resource_type = "video"; // fixed type
 
     // Sign ONLY the parameters that will be sent in formData
     const signature = cloudinary.utils.api_sign_request(
-        { timestamp, folder },
+        { timestamp, folder, resource_type },
         process.env.CLOUDINARY_API_SECRET
     );
 
