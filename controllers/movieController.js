@@ -1,4 +1,3 @@
-
 // controllers/movieController.js
 require('dotenv').config();
 const cloudinary = require('cloudinary').v2;
@@ -12,6 +11,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+/*
 // ✅ Helper for Cloudinary signed uploads
 const uploadToCloudinary = (fileBuffer, folder, resourceType) => {
     return new Promise((resolve, reject) => {
@@ -25,7 +25,7 @@ const uploadToCloudinary = (fileBuffer, folder, resourceType) => {
         stream.Readable.from(fileBuffer).pipe(uploadStream);
     });
 };
-
+*/
 
 // ✅ Get all movies
 exports.getAllMovies = async (req, res) => {
@@ -54,30 +54,29 @@ exports.getMovieById = async (req, res) => {
 
 // ✅ Get movies with pagination (for Library.js)
 exports.getPaginatedMovies = async (req, res) => {
-  try {
-      const page = parseInt(req.query.page) || 1;
-     const limit = parseInt(req.query.limit) || 8;
-     const skip = (page - 1) * limit;
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 8;
+        const skip = (page - 1) * limit;
 
-      const movies = await Movie.find()
-           .sort({ createdAt: -1 })
-           .skip(skip)
-           .limit(limit);
+        const movies = await Movie.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
         const totalMovies = await Movie.countDocuments();
-       const totalPages = Math.ceil(totalMovies / limit);
+        const totalPages = Math.ceil(totalMovies / limit);
 
-       res.status(200).json({
-           movies,
-           page,
+        res.status(200).json({
+            movies,
+            page,
             totalPages
         });
     } catch (err) {
-       console.error('Error in getPaginatedMovies:', err);
+        console.error('Error in getPaginatedMovies:', err);
         res.status(500).json({ message: 'Server error' });
     }
 };
-
 
 // ✅ Search movies by title
 exports.searchMovies = async (req, res) => {
@@ -98,8 +97,7 @@ exports.searchMovies = async (req, res) => {
     }
 };
 
-// ✅ Create movie (signed Cloudinary upload flow)
-// ✅ Create movie (signed upload flow — no file upload here)
+// ✅ Create movie (signed Cloudinary upload flow — no file upload here)
 exports.createMovie = async (req, res) => {
     try {
         const { title, genre, posterUrl, posterPublicId, videoUrl, videoPublicId } = req.body;
@@ -131,7 +129,6 @@ exports.createMovie = async (req, res) => {
         });
     }
 };
-
 
 // ✅ Update movie
 exports.updateMovie = async (req, res) => {
