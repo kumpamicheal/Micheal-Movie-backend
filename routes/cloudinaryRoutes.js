@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
+const Movie = require('../models/Movie');
 const adminAuth = require('../middlewares/authMiddleware');
 
 cloudinary.config({
