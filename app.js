@@ -8,26 +8,27 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Allowed origins (Netlify + local dev)
+// ✅ Allowed origins (Netlify + local dev + Capacitor + Android WebView)
 const allowedOrigins = [
     'https://melodious-hotteok-6bc1a4.netlify.app',
     'http://localhost:3000',
     'http://localhost:5173',
-    'capacitor://localhost',
-    'http://localhost'
+    'capacitor://localhost',  // Capacitor standard origin
+    'http://localhost',
+    'https://localhost'       // Android WebView origin
 ];
 
 console.log('🧪 Allowed Origins:', allowedOrigins);
 
 // ✅ CORS configuration with safe logging
 const corsOptions = {
-    origin: function (origin, callback) {
+    origin: function(origin, callback) {
         console.log('🌐 Incoming Origin:', origin);
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             console.warn('⚠️ Blocked by CORS, but not crashing:', origin);
-            callback(null, false); // Don't crash, just reject the request
+            callback(null, false); // reject request but don’t crash
         }
     },
     credentials: true,
