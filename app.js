@@ -11,7 +11,10 @@ const app = express();
 // ✅ Allowed origins (Netlify + local dev)
 const allowedOrigins = [
     'https://melodious-hotteok-6bc1a4.netlify.app',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'capacitor://localhost',
+    'http://localhost'
 ];
 
 console.log('🧪 Allowed Origins:', allowedOrigins);
