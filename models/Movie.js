@@ -9,7 +9,7 @@ const movieSchema = new mongoose.Schema({
     genre: {
         type: String,
         required: true,
-        enum: ['Action', 'Drama', 'Comedy', 'Horror', 'Sci-Fi', 'Romance', 'Thriller', 'Other']
+        enum: ['Action', 'Drama', 'Adventure', 'Horror', 'Sci-Fi', 'Romance', 'Thriller', 'Nollywood']
     },
     videoUrl: {
         type: String,

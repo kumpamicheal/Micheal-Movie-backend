@@ -12,7 +12,9 @@ cloudinary.config({
 });
 
 /*
-// ✅ Helper for Cloudinary signed uploads
+// ❌ Old Helper for Cloudinary direct uploads (backend uploading files itself)
+// We are no longer using this because frontend will upload directly to Cloudinary
+// using signed upload params from the backend.
 const uploadToCloudinary = (fileBuffer, folder, resourceType) => {
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -159,5 +161,35 @@ exports.deleteMovie = async (req, res) => {
     } catch (err) {
         console.error('Error in deleteMovie:', err);
         res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// ✅ Generate signed upload params (frontend uses this for direct Cloudinary uploads)
+exports.getUploadSignature = async (req, res) => {
+    try {
+        const { folder, resource_type } = req.query;
+
+        if (!folder || !resource_type) {
+            return res.status(400).json({ message: "folder and resource_type are required" });
+        }
+
+        const timestamp = Math.round(Date.now() / 1000);
+
+        const signature = cloudinary.utils.api_sign_request(
+            { timestamp, folder, resource_type },
+            process.env.CLOUDINARY_API_SECRET
+        );
+
+        res.json({
+            cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+            apiKey: process.env.CLOUDINARY_API_KEY,
+            timestamp,
+            signature,
+            folder,
+            resource_type,
+        });
+    } catch (err) {
+        console.error("Error generating signature:", err);
+        res.status(500).json({ message: "Server error generating signature" });
     }
 };

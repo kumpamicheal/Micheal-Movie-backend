@@ -49,4 +49,7 @@ router.delete(
     safe(movieController.deleteMovie)
 );
 
+// ✅ New signed upload route for frontend
+router.get('/upload-signature', movieController.getUploadSignature);
+
 module.exports = router;
