@@ -18,22 +18,24 @@ router.get('/search', safe(movieController.searchMovies));
 // ✅ New paginated route for Library.js
 router.get('/paginated', safe(movieController.getPaginatedMovies));
 
+// ✅ New signed upload route for frontend — MUST be before '/:id'
+router.get('/upload-signature', movieController.getUploadSignature);
+
+// ✅ Get movie by ID
 router.get('/:id', validateObjectId, safe(movieController.getMovieById));
 
-
 //router.post(
-   // '/',
-  // adminAuth,
-  // upload.single('video'),
-  // safe(movieController.createMovie)
+//    '/',
+//    adminAuth,
+//    upload.single('video'),
+//    safe(movieController.createMovie)
 //);
 
 router.post(
     '/',
-   adminAuth,
-   safe(movieController.createMovie)
+    adminAuth,
+    safe(movieController.createMovie)
 );
-
 
 router.put(
     '/:id',
@@ -48,8 +50,5 @@ router.delete(
     validateObjectId,
     safe(movieController.deleteMovie)
 );
-
-// ✅ New signed upload route for frontend
-router.get('/upload-signature', movieController.getUploadSignature);
 
 module.exports = router;
