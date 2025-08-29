@@ -166,6 +166,11 @@ exports.deleteMovie = async (req, res) => {
 // ✅ Generate signed upload params (frontend uses this for direct Cloudinary uploads)
 exports.getUploadSignature = async (req, res) => {
     try {
+        // 🔹 Debug logging added to inspect full request
+        console.log("Incoming URL:", req.originalUrl);
+        console.log("Incoming query object:", req.query);
+        console.log("Folder:", req.query.folder, "Resource Type:", req.query.resource_type);
+
         const { folder, resource_type } = req.query;
 
         // ✅ Debug logs to check incoming query params
