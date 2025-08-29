@@ -1,4 +1,3 @@
-// controllers/movieController.js
 require('dotenv').config();
 const cloudinary = require('cloudinary').v2;
 const stream = require('stream');
@@ -168,6 +167,10 @@ exports.deleteMovie = async (req, res) => {
 exports.getUploadSignature = async (req, res) => {
     try {
         const { folder, resource_type } = req.query;
+
+        // ✅ Debug logs to check incoming query params
+        console.log("getUploadSignature query:", req.query);
+        console.log("Folder:", folder, "Resource Type:", resource_type);
 
         if (!folder || !resource_type) {
             return res.status(400).json({ message: "folder and resource_type are required" });
